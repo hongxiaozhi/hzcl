@@ -430,7 +430,7 @@ static void create_ui(void)
 /*===========================================================================
  * Main
  *===========================================================================*/
-int main(void)
+int main(int argc, char *argv[])
 {
     /* ---- Init HZCL subsystems ---- */
     hz_platform_init();
