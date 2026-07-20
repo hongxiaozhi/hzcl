@@ -53,14 +53,24 @@ add_subdirectory(${HZCL_ROOT} hzcl_build)
 add_executable(desk_pet
     src/main.c
     src/hz_platform_sdl2.c
+    src/pet_face.c
+    src/screens/screen_home.c
+    src/screens/screen_stats.c
+    src/screens/screen_settings.c
+    src/screens/screen_about.c
 )
 
 target_include_directories(desk_pet PRIVATE
-    "${HZCL_ROOT}"       # hz_config.h
-    "${HZCL_ROOT}/src"   # hz_types.h, hz_fsm.h, ...
+    "${HZCL_ROOT}"              # hz_config.h
+    "${HZCL_ROOT}/src"          # hz_types.h, hz_fsm.h, ...
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"  # app.h
 )
 
 target_compile_definitions(desk_pet PRIVATE SDL_MAIN_HANDLED)
+
+# Suppress pointer-to-int cast warnings (config_id passed via void* on 64-bit)
+target_compile_options(desk_pet PRIVATE -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast)
+target_compile_options(desk_pet PRIVATE -Wno-deprecated-declarations)
 
 target_link_libraries(desk_pet PRIVATE
     lvgl
