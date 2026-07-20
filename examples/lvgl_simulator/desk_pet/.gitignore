@@ -1,0 +1,55 @@
+# Visual Studio build outputs
+Build/
+build/
+Debug/
+Release/
+x64/
+x86/
+Arm/
+Arm64/
+*.sdf
+*.opensdf
+*.cache
+*.ilk
+*.obj
+*.pdb
+*.idb
+*.ipdb
+*.iobj
+*.tlog
+*.log
+*.lastbuildstate
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Output directories
+Output/
+*.exe
+*.dll
+*.lib
+*.exp
+*.pdb
+
+# Mile.Project / NuGet packages
+packages/
+*.nupkg
+
+# CMake generated
+CMakeFiles/
+cmake_install.cmake
+CMakeCache.txt
+Makefile
+
+# CMake build output directory
+build/
+
+# SDL2 bundled source distribution (download separately)
+sdl2/
+
+# Mile.Project build templates (not needed for CMake build)
+Mile.Project.Windows.Legacy/

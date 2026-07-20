@@ -1,0 +1,7 @@
+{
+  "name": "desk-pet",
+  "version": "1.0.0",
+  "dependencies": [
+    "sdl2"
+  ]
+}
