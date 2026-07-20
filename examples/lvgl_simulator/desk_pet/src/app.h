@@ -216,6 +216,9 @@ void app_notify_activity(void);
 /** Log an action to the activity log ring buffer */
 void app_log_action(const char *action);
 
+/** Pet status simulation (called each second via ACT_TICK) */
+void pet_status_tick(void);
+
 /** Check and unlock achievements */
 void app_check_achievements(void);
 

@@ -58,6 +58,14 @@ add_executable(desk_pet
     src/screens/screen_stats.c
     src/screens/screen_settings.c
     src/screens/screen_about.c
+    src/init/fsm.c
+    src/init/modes.c
+    src/init/sensors.c
+    src/init/alarms.c
+    src/init/config.c
+    src/init/timers.c
+    src/init/events.c
+    src/init/lvgl.c
 )
 
 target_include_directories(desk_pet PRIVATE
@@ -69,8 +77,12 @@ target_include_directories(desk_pet PRIVATE
 target_compile_definitions(desk_pet PRIVATE SDL_MAIN_HANDLED)
 
 # Suppress pointer-to-int cast warnings (config_id passed via void* on 64-bit)
-target_compile_options(desk_pet PRIVATE -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast)
-target_compile_options(desk_pet PRIVATE -Wno-deprecated-declarations)
+if(MSVC)
+    target_compile_options(desk_pet PRIVATE /wd4311 /wd4312 /wd4996)
+else()
+    target_compile_options(desk_pet PRIVATE -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast)
+    target_compile_options(desk_pet PRIVATE -Wno-deprecated-declarations)
+endif()
 
 target_link_libraries(desk_pet PRIVATE
     lvgl
@@ -82,7 +94,7 @@ target_link_libraries(desk_pet PRIVATE
 if(WIN32)
     add_custom_command(TARGET desk_pet POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "$<TARGET_FILE:SDL2>"
+            "$<TARGET_FILE:SDL2::SDL2>"
             "$<TARGET_FILE_DIR:desk_pet>"
         COMMENT "Copying SDL2.dll to output directory..."
     )
