@@ -1,3 +1,6 @@
 [submodule "examples/lvgl_simulator/lvgl"]
 	path = examples/lvgl_simulator/lvgl
 	url = https://github.com/lvgl/lvgl.git
+[submodule "examples/lvgl_simulator/sdl"]
+	path = examples/lvgl_simulator/sdl
+	url = https://github.com/libsdl-org/SDL.git

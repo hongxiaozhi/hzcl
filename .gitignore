@@ -3,3 +3,5 @@ build/
 
 # Claude Code per-user settings
 .claude/
+
+references/
