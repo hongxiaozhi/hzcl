@@ -2,6 +2,7 @@
 #include "app.h"
 #include "hz_sensor.h"
 #include "hz_sensor_filter.h"
+#include <stdlib.h>
 
 static int s_activity_counter = 0;
 

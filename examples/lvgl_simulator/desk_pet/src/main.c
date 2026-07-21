@@ -24,6 +24,7 @@
 #include "init/timers.h"
 #include "init/events.h"
 #include "init/lvgl.h"
+#include "lvgl/lvgl.h"
 
 #include <stdio.h>
 #include <stdlib.h>
