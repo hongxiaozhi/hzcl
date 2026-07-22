@@ -134,8 +134,14 @@ hz_err_t hz_screen_replace(hz_screen_t *screen, void *ctx)
 
 hz_err_t hz_screen_pop(void)
 {
+    hz_screen_t *cur;
+
     if (!s_inited) return HZ_ERR_INVALID;
     if (s_stack.depth <= 1) return HZ_ERR_FAIL; /* 至少保留主页 */
+
+    /* 检查当前屏幕是否禁止返回 */
+    cur = s_stack.screens[s_stack.depth - 1];
+    if (cur && (cur->cfg_mask & HZ_SCREEN_CFG_NO_BACK)) return HZ_ERR_FAIL;
 
     s_stack.pending_op = 3;
     execute_switch();

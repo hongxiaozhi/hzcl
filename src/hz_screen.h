@@ -36,6 +36,27 @@ typedef struct hz_input_event {
 } hz_input_event_t;
 
 /* ============================================================
+ * 屏幕配置（cfg_mask 低 16 位 HZCL 预定义 + cfg_data 扩展）
+ *
+ * 用法示例：
+ *   // 简单场景：只用位掩码
+ *   .cfg_mask = HZ_SCREEN_CFG_MODAL | HZ_SCREEN_CFG_KEEP_ALIVE,
+ *
+ *   // 复杂场景：携带用户自定义配置结构体
+ *   .cfg_data = &(my_modal_cfg_t){ .anim = 1, .dim = 0x80 },
+ * ============================================================ */
+#define HZ_SCREEN_CFG_MODAL         (1 << 0)   /* 模态：阻止下层屏幕接收输入 */
+#define HZ_SCREEN_CFG_TRANSPARENT   (1 << 1)   /* 透明：下层屏幕可见（对话框/弹窗） */
+#define HZ_SCREEN_CFG_KEEP_ALIVE    (1 << 2)   /* pop 后不销毁（Tab 页保留状态） */
+#define HZ_SCREEN_CFG_NO_ANIM       (1 << 3)   /* 禁用切换动画 */
+#define HZ_SCREEN_CFG_NO_BACK       (1 << 4)   /* 禁止返回（如首页/登录页） */
+#define HZ_SCREEN_CFG_FULLSCREEN    (1 << 5)   /* 全屏：隐藏状态栏/导航栏 */
+#define HZ_SCREEN_CFG_POP_ON_BG     (1 << 6)   /* 点击背景区域自动 pop（弹窗） */
+
+/* 用户自定义区域  —  直接写 (1 << 16) ~ (1 << 31) */
+#define HZ_SCREEN_CFG_USER_SHIFT    16
+
+/* ============================================================
  * 屏幕描述符
  *
  * 每个 UI 页面实现此结构体中的回调。
@@ -43,7 +64,9 @@ typedef struct hz_input_event {
  * ============================================================ */
 
 typedef struct hz_screen {
-    const char *name;   /* 屏幕名称（必须唯一，用于调试和 pop_to） */
+    const char *name;        /* 屏幕名称（必须唯一，用于调试和 pop_to） */
+    hz_u32      cfg_mask;    /* 配置位掩码（低16位框架预定义 + 高16位用户自定义），见 HZ_SCREEN_CFG_* */
+    const void *cfg_data;    /* 扩展配置数据指针（用户自定义结构体，只读，通常指向 static const） */
 
     /* 生命周期回调 */
     void (*on_create)(void);                    /* 创建（首次） */
@@ -61,7 +84,7 @@ typedef struct hz_screen {
     /* 输入处理（返回 true 表示已消费） */
     hz_bool_t (*on_key)(hz_u8 key_code);
 
-    void *priv;         /* 屏幕私有数据 */
+    void *priv;             /* 屏幕私有数据（运行时状态） */
 } hz_screen_t;
 
 /* ============================================================
