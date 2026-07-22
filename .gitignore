@@ -5,3 +5,6 @@ build/
 .claude/
 
 references/
+
+# Visual Studio cache
+.vs/

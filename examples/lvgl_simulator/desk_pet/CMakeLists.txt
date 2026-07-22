@@ -68,6 +68,7 @@ add_executable(desk_pet
     src/screens/screen_stats.c
     src/screens/screen_settings.c
     src/screens/screen_about.c
+    src/screens/screen_hmi.c
     src/init/fsm.c
     src/init/modes.c
     src/init/sensors.c
@@ -76,19 +77,21 @@ add_executable(desk_pet
     src/init/timers.c
     src/init/events.c
     src/init/lvgl.c
+    res/fonts/mdi_icons_20.c
 )
 
 target_include_directories(desk_pet PRIVATE
     "${HZCL_ROOT}"              # hz_config.h
     "${HZCL_ROOT}/src"          # hz_types.h, hz_fsm.h, ...
     "${CMAKE_CURRENT_SOURCE_DIR}/src"  # app.h
+    "${CMAKE_CURRENT_SOURCE_DIR}/res/fonts"  # mdi_icons.h
 )
 
 target_compile_definitions(desk_pet PRIVATE SDL_MAIN_HANDLED)
 
 # Suppress pointer-to-int cast warnings (config_id passed via void* on 64-bit)
 if(MSVC)
-    target_compile_options(desk_pet PRIVATE /wd4311 /wd4312 /wd4996)
+    target_compile_options(desk_pet PRIVATE /utf-8 /wd4311 /wd4312 /wd4996)
 else()
     target_compile_options(desk_pet PRIVATE -Wno-pointer-to-int-cast -Wno-int-to-pointer-cast)
     target_compile_options(desk_pet PRIVATE -Wno-deprecated-declarations)

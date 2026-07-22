@@ -81,6 +81,10 @@
 #define LV_FONT_MONTSERRAT_24    1
 #define LV_FONT_MONTSERRAT_48    1
 
+/* CJK font for Chinese text (Source Han Sans SC / 思源黑体) */
+#define LV_FONT_SOURCE_HAN_SANS_SC_14_CJK   1
+#define LV_FONT_SOURCE_HAN_SANS_SC_16_CJK   1
+
 #define LV_USE_FONT_COMPRESSED   0
 
 /*====================

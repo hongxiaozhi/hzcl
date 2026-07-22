@@ -120,10 +120,12 @@ static void btn_mode_cb(lv_event_t *e)
 hz_screen_t *screen_stats_get(void);
 hz_screen_t *screen_settings_get(void);
 hz_screen_t *screen_about_get(void);
+hz_screen_t *hmi_get_screen(void);
 
 static void btn_stats_cb(lv_event_t *e)     { (void)e; hz_screen_push(screen_stats_get(), NULL); }
 static void btn_settings_cb(lv_event_t *e)  { (void)e; hz_screen_push(screen_settings_get(), NULL); }
 static void btn_about_cb(lv_event_t *e)    { (void)e; hz_screen_push(screen_about_get(), NULL); }
+static void btn_hmi_cb(lv_event_t *e)      { (void)e; hz_screen_push(hmi_get_screen(), NULL); }
 
 /*===========================================================================
  * Screen lifecycle
@@ -228,11 +230,11 @@ static void home_on_create(void)
     }
 
     /* Bottom nav buttons */
-    const char *nav_labels[] = { "Stats", "Settings", "About" };
-    lv_event_cb_t nav_cbs[] = { btn_stats_cb, btn_settings_cb, btn_about_cb };
-    int nav_x[] = { -80, 0, 80 };
+    const char *nav_labels[] = { "HMI", "Stats", "Settings", "About" };
+    lv_event_cb_t nav_cbs[] = { btn_hmi_cb, btn_stats_cb, btn_settings_cb, btn_about_cb };
+    int nav_x[] = { -150, -50, 50, 150 };
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
         btn = lv_btn_create(s_cont);
         lv_obj_set_size(btn, 65, 22);
         lv_obj_align(btn, LV_ALIGN_BOTTOM_MID, nav_x[i], -85);

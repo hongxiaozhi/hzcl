@@ -15,6 +15,8 @@ void screen_settings_create(void);
 hz_screen_t *screen_settings_get(void);
 void screen_about_create(void);
 hz_screen_t *screen_about_get(void);
+void screen_hmi_create(void);
+hz_screen_t *hmi_get_screen(void);
 
 #define SCREEN_HOR_RES  480
 #define SCREEN_VER_RES  320
@@ -36,6 +38,7 @@ void init_lvgl(void)
     screen_stats_create();
     screen_settings_create();
     screen_about_create();
+    screen_hmi_create();
 
     /* Enter initial FSM state and mode BEFORE pushing home screen */
     hz_fsm_transition(PET_STATE_IDLE);
