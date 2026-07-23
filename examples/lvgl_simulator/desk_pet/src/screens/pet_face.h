@@ -1,8 +1,9 @@
 /**
  * @file pet_face.h
- * @brief Cartoon pet face — drawn with LVGL basic shapes
+ * @brief Pet face emotion system — drawn with LVGL basic shapes
  *
- * Each state maps to a distinct facial expression.
+ * Each state maps to a distinct facial expression with per-state
+ * lv_style_t for border/glow (like CSS classes).
  * All face objects are children of a container you position/scale.
  */
 
@@ -21,7 +22,10 @@ extern "C" {
 void pet_face_create(lv_obj_t *parent);
 
 /** Update face expression for the given pet state */
-void pet_face_set_state(hz_state_t state, int32_t hunger, int32_t energy, int32_t mood);
+void pet_face_set_state(hz_state_t state);
+
+/** Periodic tick for blink timing (call from screen on_tick) */
+void pet_face_tick(hz_u32 ms);
 
 /** Get the face container (for positioning / animation) */
 lv_obj_t *pet_face_get_cont(void);

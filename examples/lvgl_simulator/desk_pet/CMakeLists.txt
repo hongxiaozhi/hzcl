@@ -63,12 +63,13 @@ add_subdirectory(${HZCL_ROOT} hzcl_build)
 add_executable(desk_pet
     src/main.c
     src/hz_platform_sdl2.c
-    src/pet_face.c
-    src/screens/screen_home.c
-    src/screens/screen_stats.c
-    src/screens/screen_settings.c
-    src/screens/screen_about.c
-    src/screens/screen_hmi.c
+    src/screens/pet_screen.c
+    src/screens/pet_face.c
+    src/screens/pet_home.c
+    src/screens/pet_chat.c
+    src/screens/pet_dash.c
+    src/screens/pet_settings.c
+    src/screens/pet_about.c
     src/init/fsm.c
     src/init/modes.c
     src/init/sensors.c
