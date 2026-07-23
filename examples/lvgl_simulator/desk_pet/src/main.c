@@ -4,6 +4,7 @@
  */
 
 #include "app.h"
+#include "screens/pet_home.h"
 #include "hz_types.h"
 #include "hz_fsm.h"
 #include "hz_event.h"
@@ -259,6 +260,7 @@ int main(int argc, char *argv[])
         hz_alarm_tick(elapsed);
         hz_power_tick(elapsed);
         hz_screen_tick(elapsed);
+        pet_home_tick(elapsed);
 
         lv_timer_handler();
         lv_tick_inc(elapsed);

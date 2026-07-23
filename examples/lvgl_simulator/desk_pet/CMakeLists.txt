@@ -70,6 +70,7 @@ add_executable(desk_pet
     src/screens/pet_dash.c
     src/screens/pet_settings.c
     src/screens/pet_about.c
+    src/util_screenshot.c
     src/init/fsm.c
     src/init/modes.c
     src/init/sensors.c

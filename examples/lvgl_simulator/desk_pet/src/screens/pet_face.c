@@ -31,9 +31,9 @@
 #define EYE_X     (HEAD_SZ * 14 / 100)   /* eye x offset: 14% of head */
 #define EYE_Y     (HEAD_SZ * 11 / 100)   /* eye y offset: 11% of head */
 #define PUPIL_SZ  (HEAD_SZ * 7 / 100)    /* pupil diameter: 7% of head */
-#define MOUTH_W   (HEAD_SZ * 65 / 100)   /* mouth arc box: 65% of head */
-#define MOUTH_H   (HEAD_SZ * 13 / 100)   /* mouth height: 13% of head */
-#define MOUTH_Y   (HEAD_SZ * 25 / 100)   /* mouth y: center + 25% = 3/4 from top */
+#define MOUTH_W   (HEAD_SZ * 31 / 100)   /* mouth arc box: 31% of head (matches HTML 28px) */
+#define MOUTH_H   MOUTH_W                 /* square box for circular arc curvature */
+#define MOUTH_Y   (HEAD_SZ * 19 / 100)   /* mouth y: center + 19% of head */
 #define BLUSH_SZ  (HEAD_SZ * 9 / 100)    /* blush diameter: 9% of head */
 #define BLUSH_X   (HEAD_SZ * 22 / 100)   /* blush x offset: 22% of head */
 #define BLUSH_Y   (HEAD_SZ * 7 / 100)    /* blush y offset: 7% of head */
@@ -241,9 +241,10 @@ void pet_face_create(lv_obj_t *parent)
     lv_arc_set_bg_angles(s_m, 0, 0);
     lv_arc_set_angles(s_m, 170, 370);
     lv_obj_set_style_arc_color(s_m, lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
-    lv_obj_set_style_arc_width(s_m, HEAD_SZ * 6 / 90, LV_PART_INDICATOR);
+    /* Ultra-fine mouth line: 1px arc width with rounded caps */
+    lv_obj_set_style_arc_width(s_m, HEAD_SZ * 1 / 90, LV_PART_INDICATOR);
     lv_obj_set_style_arc_opa(s_m, LV_OPA_TRANSP, LV_PART_MAIN);
-    lv_obj_set_style_arc_rounded(s_m, false, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_rounded(s_m, true, LV_PART_INDICATOR);
     lv_obj_set_style_opa(s_m, LV_OPA_TRANSP, LV_PART_KNOB);
     lv_obj_remove_flag(s_m, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scrollbar_mode(s_m, LV_SCROLLBAR_MODE_OFF);
@@ -337,6 +338,10 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_HYPER:
         apply_head(C_ACCENT2, 38, LV_OPA_40);
         lv_arc_set_angles(s_m, 0, 360);
+        lv_obj_set_size(s_el, EYE_SZ, EYE_SZ / 2);
+        lv_obj_set_size(s_er, EYE_SZ, EYE_SZ / 2);
+        lv_obj_set_size(s_pl, PUPIL_SZ, 2);
+        lv_obj_set_size(s_pr, PUPIL_SZ, 2);
         lv_obj_clear_flag(s_bl, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(s_br, LV_OBJ_FLAG_HIDDEN);
         lv_obj_clear_flag(s_sw, LV_OBJ_FLAG_HIDDEN);
@@ -345,17 +350,17 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_EATING:
         apply_head(C_ACCENT2, 22, LV_OPA_20);
         lv_arc_set_angles(s_m, 0, 360);
-        lv_obj_set_size(s_el, EYE_SZ * 7 / 16, EYE_SZ * 7 / 16);
-        lv_obj_set_size(s_er, EYE_SZ * 7 / 16, EYE_SZ * 7 / 16);
-        lv_obj_set_size(s_pl, PUPIL_SZ * 2 / 3, PUPIL_SZ * 2 / 3);
-        lv_obj_set_size(s_pr, PUPIL_SZ * 2 / 3, PUPIL_SZ * 2 / 3);
+        lv_obj_set_size(s_el, EYE_SZ * 3 / 4, EYE_SZ * 3 / 4);
+        lv_obj_set_size(s_er, EYE_SZ * 3 / 4, EYE_SZ * 3 / 4);
+        lv_obj_set_size(s_pl, PUPIL_SZ / 2, PUPIL_SZ / 2);
+        lv_obj_set_size(s_pr, PUPIL_SZ / 2, PUPIL_SZ / 2);
         break;
 
     case PET_STATE_SLEEPING:
         apply_head(C_PURPLE, 18, LV_OPA_20);
-        lv_arc_set_angles(s_m, 90, 270);
-        lv_obj_set_size(s_el, EYE_SZ, 3);
-        lv_obj_set_size(s_er, EYE_SZ, 3);
+        lv_arc_set_angles(s_m, 0, 360);
+        lv_obj_set_size(s_el, EYE_SZ, 2);
+        lv_obj_set_size(s_er, EYE_SZ, 2);
         lv_obj_set_style_bg_color(s_el, lv_color_hex(0x666666), 0);
         lv_obj_set_style_bg_color(s_er, lv_color_hex(0x666666), 0);
         lv_obj_add_flag(s_pl, LV_OBJ_FLAG_HIDDEN);
@@ -366,11 +371,15 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_SAD:
         apply_head(C_PURPLE, 22, LV_OPA_20);
         lv_arc_set_angles(s_m, 20, 160);
+        lv_obj_set_size(s_el, EYE_SZ, EYE_SZ * 5 / 4);
+        lv_obj_set_size(s_er, EYE_SZ, EYE_SZ * 5 / 4);
         break;
 
     case PET_STATE_SICK:
         apply_head(C_SICK, 16, LV_OPA_20);
         lv_arc_set_angles(s_m, 45, 135);
+        lv_obj_set_style_bg_opa(s_el, LV_OPA_70, 0);
+        lv_obj_set_style_bg_opa(s_er, LV_OPA_70, 0);
         break;
 
     case PET_STATE_TRAINING:
