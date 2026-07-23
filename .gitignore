@@ -8,3 +8,8 @@ references/
 
 # Visual Studio cache
 .vs/
+
+# Node.js (not used in this C project)
+node_modules/
+package.json
+package-lock.json
