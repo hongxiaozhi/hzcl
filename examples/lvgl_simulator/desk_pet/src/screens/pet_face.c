@@ -22,24 +22,26 @@
 #define C_DARK    0x0b1120
 
 /*===========================================================================
- * Proportional face geometry — change HEAD_SZ to scale everything
- * All ratios are % of HEAD_SZ for readability:
- *   (HEAD_SZ * 18 / 100) = 18% of head size
+ * Proportional face geometry — matches design/desk_pet_prototype.html
+ *   HEAD_SZ=90 → all values via ROUND_PCT for pixel-accurate rounding
  *===========================================================================*/
-#define HEAD_SZ   90           /* change this to scale the whole face */
-#define EYE_SZ    (HEAD_SZ * 18 / 100)   /* eye diameter: 18% of head */
-#define EYE_X     (HEAD_SZ * 14 / 100)   /* eye x offset: 14% of head */
-#define EYE_Y     (HEAD_SZ * 11 / 100)   /* eye y offset: 11% of head */
-#define PUPIL_SZ  (HEAD_SZ * 7 / 100)    /* pupil diameter: 7% of head */
-#define MOUTH_W   (HEAD_SZ * 31 / 100)   /* mouth arc box: 31% of head (matches HTML 28px) */
-#define MOUTH_H   MOUTH_W                 /* square box for circular arc curvature */
-#define MOUTH_Y   (HEAD_SZ * 19 / 100)   /* mouth y: center + 19% of head */
-#define BLUSH_SZ  (HEAD_SZ * 9 / 100)    /* blush diameter: 9% of head */
-#define BLUSH_X   (HEAD_SZ * 22 / 100)   /* blush x offset: 22% of head */
-#define BLUSH_Y   (HEAD_SZ * 7 / 100)    /* blush y offset: 7% of head */
-#define DECOR_Y   (HEAD_SZ * -13 / 100)  /* decoration y: -13% (above) */
-#define DECOR_X   (HEAD_SZ * 31 / 100)   /* decoration x: 31% of head */
-#define BUBBLE_Y  (HEAD_SZ * -9 / 100)   /* bubble y: -9% (above head) */
+#define ROUND_PCT(head, pct) (((head) * (pct) + 50) / 100)
+#define HEAD_SZ   90
+#define EYE_W     16                        /* match design: 16×20 oval */
+#define EYE_H     20
+#define EYE_X     ROUND_PCT(HEAD_SZ, 17)    /* 15 = gap(15)/2 + eye(16)/2 */
+#define EYE_Y     ROUND_PCT(HEAD_SZ, 8)     /* 7 = head_ctr(45)-eye_ctr(38) */
+#define PUPIL_SZ  ROUND_PCT(HEAD_SZ, 6)     /* 5 (design: 5×5) */
+#define MOUTH_W   ROUND_PCT(HEAD_SZ, 31)    /* 28 */
+#define MOUTH_H   MOUTH_W
+#define MOUTH_Y   ROUND_PCT(HEAD_SZ, 19)    /* 17 */
+#define BLUSH_SZ  ROUND_PCT(HEAD_SZ, 9)     /* 8 */
+#define BLUSH_X   ROUND_PCT(HEAD_SZ, 22)    /* 20 */
+#define BLUSH_Y   ROUND_PCT(HEAD_SZ, 7)     /* 6 */
+#define DECOR_Y   ROUND_PCT(HEAD_SZ, -13)
+#define DECOR_X   ROUND_PCT(HEAD_SZ, 31)
+#define BUBBLE_Y  ROUND_PCT(HEAD_SZ, -9)
+#define EYE_R     (EYE_W / 2)               /* 8 = half-width for oval shape */
 
 /*===========================================================================
  * Widget references
@@ -192,7 +194,7 @@ static void do_blink(void)
     lv_anim_init(&a);
     lv_anim_set_var(&a, s_el);
     lv_anim_set_exec_cb(&a, blink_eye);
-    lv_anim_set_values(&a, EYE_SZ, 2);
+    lv_anim_set_values(&a, EYE_H, 2);  /* blink: height → 2px */
     lv_anim_set_time(&a, 75);
     lv_anim_set_playback_time(&a, 75);
     lv_anim_set_repeat_count(&a, 1);
@@ -222,10 +224,24 @@ void pet_face_create(lv_obj_t *parent)
     lv_obj_remove_flag(s_head, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_scrollbar_mode(s_head, LV_SCROLLBAR_MODE_OFF);
 
-    /* Eyes */
-    s_el = make_circle(s_head, EYE_SZ, lv_color_hex(0xFFFFFF));
+    /* Eyes — 16×20 oval (match design) */
+    s_el = lv_obj_create(s_head);
+    lv_obj_set_size(s_el, EYE_W, EYE_H);
+    lv_obj_set_style_radius(s_el, EYE_R, 0);  /* oval: r = half width */
+    lv_obj_set_style_bg_color(s_el, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_border_width(s_el, 0, 0);
+    lv_obj_set_style_bg_opa(s_el, LV_OPA_COVER, 0);
+    lv_obj_remove_flag(s_el, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollbar_mode(s_el, LV_SCROLLBAR_MODE_OFF);
     lv_obj_align(s_el, LV_ALIGN_CENTER, -EYE_X, -EYE_Y);
-    s_er = make_circle(s_head, EYE_SZ, lv_color_hex(0xFFFFFF));
+    s_er = lv_obj_create(s_head);
+    lv_obj_set_size(s_er, EYE_W, EYE_H);
+    lv_obj_set_style_radius(s_er, EYE_R, 0);
+    lv_obj_set_style_bg_color(s_er, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_border_width(s_er, 0, 0);
+    lv_obj_set_style_bg_opa(s_er, LV_OPA_COVER, 0);
+    lv_obj_remove_flag(s_er, LV_OBJ_FLAG_CLICKABLE | LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_scrollbar_mode(s_er, LV_SCROLLBAR_MODE_OFF);
     lv_obj_align(s_er, LV_ALIGN_CENTER, EYE_X, -EYE_Y);
 
     /* Pupils */
@@ -234,15 +250,14 @@ void pet_face_create(lv_obj_t *parent)
     s_pr = make_circle(s_er, PUPIL_SZ, lv_color_hex(C_DARK));
     lv_obj_align(s_pr, LV_ALIGN_CENTER, 0, 1);
 
-    /* Mouth */
+    /* Mouth — border-bottom:2px match design */
     s_m = lv_arc_create(s_head);
     lv_obj_set_size(s_m, MOUTH_W, MOUTH_H);
     lv_arc_set_range(s_m, 0, 360);
     lv_arc_set_bg_angles(s_m, 0, 0);
     lv_arc_set_angles(s_m, 170, 370);
     lv_obj_set_style_arc_color(s_m, lv_color_hex(0xFFFFFF), LV_PART_INDICATOR);
-    /* Ultra-fine mouth line: 1px arc width with rounded caps */
-    lv_obj_set_style_arc_width(s_m, HEAD_SZ * 1 / 90, LV_PART_INDICATOR);
+    lv_obj_set_style_arc_width(s_m, 2, LV_PART_INDICATOR);  /* match design 2px */
     lv_obj_set_style_arc_opa(s_m, LV_OPA_TRANSP, LV_PART_MAIN);
     lv_obj_set_style_arc_rounded(s_m, true, LV_PART_INDICATOR);
     lv_obj_set_style_opa(s_m, LV_OPA_TRANSP, LV_PART_KNOB);
@@ -302,11 +317,11 @@ void pet_face_set_state(hz_state_t state)
     lv_obj_add_flag(s_bl, LV_OBJ_FLAG_HIDDEN);
     lv_obj_add_flag(s_br, LV_OBJ_FLAG_HIDDEN);
 
-    /* Reset eyes */
-    lv_obj_set_size(s_el, EYE_SZ, EYE_SZ);
-    lv_obj_set_size(s_er, EYE_SZ, EYE_SZ);
-    lv_obj_set_style_radius(s_el, LV_RADIUS_CIRCLE, 0);
-    lv_obj_set_style_radius(s_er, LV_RADIUS_CIRCLE, 0);
+    /* Reset eyes to default 16×20 oval */
+    lv_obj_set_size(s_el, EYE_W, EYE_H);
+    lv_obj_set_size(s_er, EYE_W, EYE_H);
+    lv_obj_set_style_radius(s_el, EYE_R, 0);
+    lv_obj_set_style_radius(s_er, EYE_R, 0);
     lv_obj_set_style_bg_color(s_el, lv_color_hex(0xFFFFFF), 0);
     lv_obj_set_style_bg_color(s_er, lv_color_hex(0xFFFFFF), 0);
     lv_obj_clear_flag(s_pl, LV_OBJ_FLAG_HIDDEN);
@@ -327,8 +342,8 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_HAPPY:
         apply_head(C_ACCENT, 28, LV_OPA_30);
         lv_arc_set_angles(s_m, 165, 350);
-        lv_obj_set_size(s_el, EYE_SZ, EYE_SZ / 2);
-        lv_obj_set_size(s_er, EYE_SZ, EYE_SZ / 2);
+        lv_obj_set_size(s_el, EYE_W, 14);
+        lv_obj_set_size(s_er, EYE_W, 14);
         lv_obj_set_size(s_pl, PUPIL_SZ, 2);
         lv_obj_set_size(s_pr, PUPIL_SZ, 2);
         lv_obj_clear_flag(s_bl, LV_OBJ_FLAG_HIDDEN);
@@ -338,8 +353,8 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_HYPER:
         apply_head(C_ACCENT2, 38, LV_OPA_40);
         lv_arc_set_angles(s_m, 0, 360);
-        lv_obj_set_size(s_el, EYE_SZ, EYE_SZ / 2);
-        lv_obj_set_size(s_er, EYE_SZ, EYE_SZ / 2);
+        lv_obj_set_size(s_el, EYE_W, 14);
+        lv_obj_set_size(s_er, EYE_W, 14);
         lv_obj_set_size(s_pl, PUPIL_SZ, 2);
         lv_obj_set_size(s_pr, PUPIL_SZ, 2);
         lv_obj_clear_flag(s_bl, LV_OBJ_FLAG_HIDDEN);
@@ -350,8 +365,8 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_EATING:
         apply_head(C_ACCENT2, 22, LV_OPA_20);
         lv_arc_set_angles(s_m, 0, 360);
-        lv_obj_set_size(s_el, EYE_SZ * 3 / 4, EYE_SZ * 3 / 4);
-        lv_obj_set_size(s_er, EYE_SZ * 3 / 4, EYE_SZ * 3 / 4);
+        lv_obj_set_size(s_el, EYE_W, EYE_W * 3 / 4);
+        lv_obj_set_size(s_er, EYE_W, EYE_W * 3 / 4);
         lv_obj_set_size(s_pl, PUPIL_SZ / 2, PUPIL_SZ / 2);
         lv_obj_set_size(s_pr, PUPIL_SZ / 2, PUPIL_SZ / 2);
         break;
@@ -359,8 +374,8 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_SLEEPING:
         apply_head(C_PURPLE, 18, LV_OPA_20);
         lv_arc_set_angles(s_m, 0, 360);
-        lv_obj_set_size(s_el, EYE_SZ, 2);
-        lv_obj_set_size(s_er, EYE_SZ, 2);
+        lv_obj_set_size(s_el, EYE_W, 2);
+        lv_obj_set_size(s_er, EYE_W, 2);
         lv_obj_set_style_bg_color(s_el, lv_color_hex(0x666666), 0);
         lv_obj_set_style_bg_color(s_er, lv_color_hex(0x666666), 0);
         lv_obj_add_flag(s_pl, LV_OBJ_FLAG_HIDDEN);
@@ -371,8 +386,8 @@ void pet_face_set_state(hz_state_t state)
     case PET_STATE_SAD:
         apply_head(C_PURPLE, 22, LV_OPA_20);
         lv_arc_set_angles(s_m, 20, 160);
-        lv_obj_set_size(s_el, EYE_SZ, EYE_SZ * 5 / 4);
-        lv_obj_set_size(s_er, EYE_SZ, EYE_SZ * 5 / 4);
+        lv_obj_set_size(s_el, EYE_W, 18);
+        lv_obj_set_size(s_er, EYE_W, 18);
         break;
 
     case PET_STATE_SICK:

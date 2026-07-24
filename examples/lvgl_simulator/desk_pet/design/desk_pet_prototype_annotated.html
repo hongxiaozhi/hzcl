@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=480, initial-scale=1">
+<title>Pro Desk Pet — 480×320 Full UI Prototype</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+<style>
+/* ============================================================
+   Design Tokens — direct map to LVGL lv_color_hex()
+   ============================================================ */
+:root {
+  --bg:        #0b1120;
+  --bar-bg:    #111c30;
+  --panel-bg:  #172033;
+  --card-bg:   #1c273b;
+  --divider:   rgba(255,255,255,0.06);
+  --title:     #ffffff;
+  --accent:    #22d3ee;
+  --accent2:   #fb923c;
+  --green:     #22c55e;
+  --red:       #ef4444;
+  --yellow:    #facc15;
+  --purple:    #a78bfa;
+  --pink:      #f472b6;
+  --label:     #9ca3af;
+  --desc:      #94a3b8;
+  --btn-bg:    #1e293b;
+  --btn-bd:    #334155;
+  --radius:    12px;
+  --bar-h:     36px;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  min-height:100vh;background:#e2e8f0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter','Segoe UI',system-ui,sans-serif;
+}
+.device{
+  width:480px;height:320px;background:var(--bg);color:var(--title);
+  border-radius:16px;
+  box-shadow:0 0 0 3px #334155,0 0 0 6px #1e293b,0 12px 48px rgba(0,0,0,.35);
+  overflow:hidden;user-select:none;-webkit-user-select:none;
+  position:relative;
+}
+
+/* ============================================================
+   Status bar
+   ============================================================ */
+.bar{
+  width:100%;height:var(--bar-h);background:var(--bar-bg);
+  display:flex;align-items:center;padding:0 14px;z-index:10;
+}
+.bar .title{font-size:13px;font-weight:700;color:var(--title);flex:1}
+.bar .mode-badge{
+  font-size:10px;padding:2px 8px;border-radius:6px;
+  font-weight:700;letter-spacing:.5px;margin-right:8px;
+}
+.bar .mdi{font-size:16px;color:var(--green);margin-left:6px}
+
+/* ============================================================
+   Page system — slide animation, no overflow
+   ============================================================ */
+.pages{
+  width:100%;height:calc(320px - var(--bar-h));
+  position:relative;overflow:hidden;
+}
+.page{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  padding:2px 14px 0;display:flex;flex-direction:column;align-items:center;
+  transform:translateX(30px);opacity:0;
+  pointer-events:none;transition:transform .25s ease-out,opacity .2s;
+}
+.page.active{transform:translateX(0);opacity:1;pointer-events:auto}
+.page.exit{transform:translateX(-30px);opacity:0;transition:transform .25s ease-in,opacity .15s}
+
+/* Page indicator — inside status bar */
+.dots{display:flex;gap:5px;align-items:center;margin-right:8px}
+.dot{border-radius:50%;transition:all .2s}
+.dot.on{width:9px;height:9px;background:var(--accent);box-shadow:0 0 4px var(--accent)}
+.dot.off{width:7px;height:7px;background:#64748b}
+
+/* ============================================================
+   PAGE 0: Home — Pet
+   ============================================================ */
+.pet-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+
+/* floating animation */
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}30%{transform:translateY(-14px)}50%{transform:translateY(-4px)}70%{transform:translateY(-8px)}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@keyframes tremble{0%,100%{transform:translateX(0)}20%{transform:translateX(-2px)}40%{transform:translateX(2px)}60%{transform:translateX(-1px)}80%{transform:translateX(1px)}}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+
+.pet-face{position:relative;width:90px;height:90px}
+.pet-face.float{animation:float 3s ease-in-out infinite}
+.pet-face.bounce{animation:bounce .7s ease-in-out}
+.pet-face.shake{animation:shake .25s ease-in-out}
+.pet-face.tremble{animation:tremble .4s ease-in-out infinite}
+.pet-face.spin{animation:spin .8s ease-in-out}
+.pet-face.pulse{animation:pulse .6s ease-in-out infinite}
+
+/* Pet body */
+.pet-body{
+  width:100%;height:100%;border-radius:50%;
+  background:linear-gradient(145deg,#1e293b,#0b1525);
+  border:2.5px solid #334155;
+  position:relative;overflow:hidden;
+  transition:border-color .4s,box-shadow .4s;
+}
+/* mood glows */
+.pet.idle .pet-body{border-color:#334155;box-shadow:none}
+.pet.happy .pet-body{border-color:var(--accent);box-shadow:0 0 28px rgba(34,211,238,.35)}
+.pet.hyper .pet-body{border-color:var(--accent2);box-shadow:0 0 38px rgba(251,146,60,.45)}
+.pet.eating .pet-body{border-color:var(--accent2);box-shadow:0 0 22px rgba(251,146,60,.3)}
+.pet.sad .pet-body{border-color:var(--purple);box-shadow:0 0 22px rgba(167,139,250,.25)}
+.pet.sick .pet-body{border-color:#65a30d;box-shadow:0 0 16px rgba(101,163,13,.2)}
+.pet.sleeping .pet-body{border-color:var(--purple);box-shadow:0 0 18px rgba(167,139,250,.2)}
+.pet.angry .pet-body{border-color:var(--red);box-shadow:0 0 30px rgba(239,68,68,.35)}
+.pet.training .pet-body{border-color:var(--accent);box-shadow:0 0 30px rgba(34,211,238,.4)}
+.pet.cleaning .pet-body{border-color:var(--accent);box-shadow:0 0 18px rgba(34,211,238,.2)}
+
+/* Eyes */
+.eyes{position:absolute;top:28px;left:50%;transform:translateX(-50%);display:flex;gap:15px}
+.eye{
+  width:16px;height:20px;background:var(--title);border-radius:50%;
+  position:relative;transition:all .35s;
+}
+.eye::after{
+  content:'';position:absolute;width:5px;height:5px;background:var(--bg);
+  border-radius:50%;top:55%;left:50%;transform:translate(-50%,-55%);
+}
+
+.blink .eye{animation:blinkAnim .15s ease-in-out}
+@keyframes blinkAnim{0%,100%{transform:scaleY(1)}50%{transform:scaleY(.08)}}
+
+/* state-specific eyes */
+.happy .eye,.hyper .eye{border-radius:50% 50% 50% 50% / 65% 65% 35% 35%;height:14px;top:30px}
+.sad .eye{height:18px;border-radius:50% 50% 20% 20% / 30% 30% 65% 65%}
+.sleeping .eye{height:2px;border-radius:50%;top:36px}
+.angry .eye{height:16px;transform:rotate(-5deg);box-shadow:inset 0 -2px 0 var(--red)}
+.sick .eye{height:16px;opacity:.7}
+.eating .eye{height:12px;border-radius:50%}
+
+/* Mouth */
+.mouth{
+  position:absolute;bottom:22px;left:50%;transform:translateX(-50%);
+  width:28px;height:12px;border-bottom:2px solid var(--title);
+  border-radius:0 0 50% 50%;transition:all .35s;
+}
+.happy .mouth{width:26px;height:16px;border-bottom-width:2px}
+.hyper .mouth{width:22px;height:20px;border:2px solid var(--title);border-radius:50%;border-top-color:transparent;border-left-color:transparent;border-right-color:transparent;bottom:18px}
+.sad .mouth{border-bottom:none;border-top:2px solid var(--title);border-radius:50% 50% 0 0;bottom:24px}
+.sleeping .mouth{width:16px;height:16px;border:2px solid var(--title);border-radius:50%;bottom:20px}
+.angry .mouth{border-bottom:2px solid var(--red);width:30px;border-radius:0}
+.eating .mouth{width:14px;height:14px;border:2px solid var(--title);border-radius:50%;bottom:20px;animation:eat .25s infinite alternate}
+.sick .mouth{width:22px;border-bottom:1.5px solid rgba(255,255,255,.5)}
+
+@keyframes eat{to{width:16px;height:16px;bottom:18px}}
+
+/* Talking mouth override */
+.talking .mouth{
+  width:16px;height:16px;border:2px solid var(--title);border-radius:50%;
+  border-top-color:transparent;border-left-color:transparent;border-right-color:transparent;
+  bottom:18px;animation:talk .25s infinite alternate;
+}
+@keyframes talk{to{transform:translateX(-50%) scaleY(.4)}}
+
+/* Blush */
+.blush{
+  position:absolute;top:42px;width:10px;height:5px;
+  background:rgba(251,146,60,.3);border-radius:50%;transition:opacity .3s;
+}
+.blush.l{left:12px}.blush.r{right:12px}
+.idle .blush,.sad .blush,.angry .blush,.sick .blush,.sleeping .blush{opacity:0}
+
+/* Zzz for sleep */
+.zzz{
+  position:absolute;top:-6px;right:-4px;
+  font-size:14px;color:var(--purple);opacity:0;transition:opacity .3s;
+}
+.sleeping .zzz{opacity:1}
+
+/* sweat drop for training */
+.sweat{
+  position:absolute;top:2px;left:4px;
+  font-size:12px;color:var(--accent);opacity:0;transition:opacity .3s;
+}
+.training .sweat,.hyper .sweat{opacity:1}
+
+/* sparkles for cleaning */
+.sparkle{
+  position:absolute;top:0;right:2px;
+  font-size:14px;color:var(--accent);opacity:0;transition:opacity .3s;
+}
+.cleaning .sparkle{opacity:1}
+
+/* bubble text */
+.bubble{
+  position:absolute;top:-32px;left:50%;transform:translateX(-50%);
+  background:var(--panel-bg);border:1px solid var(--btn-bd);
+  border-radius:10px;padding:3px 10px;
+  font-size:10px;color:var(--title);
+  white-space:nowrap;opacity:0;transition:opacity .3s,top .3s;
+  max-width:160px;text-align:center;
+}
+.bubble.show{opacity:1;top:-36px}
+
+/* status bars row */
+.status-row{
+  display:flex;gap:4px;width:100%;margin-top:4px;
+}
+.stats{
+  flex:1;background:var(--card-bg);border-radius:6px;
+  padding:3px 6px;display:flex;align-items:center;gap:3px;
+}
+.stats .mdi{font-size:11px;width:14px;text-align:center}
+.stats .bar-wrap{flex:1;height:3px;background:var(--btn-bd);border-radius:2px;overflow:hidden}
+.stats .bar-fill{height:100%;border-radius:2px;transition:width .6s}
+.stats .pct{font-size:9px;color:var(--label);min-width:24px;text-align:right}
+.stats.hunger .mdi{color:var(--accent2)}
+.stats.hunger .bar-fill{background:var(--accent2)}
+.stats.energy .mdi{color:var(--accent)}
+.stats.energy .bar-fill{background:var(--accent)}
+.stats.mood  .mdi{color:var(--yellow)}
+.stats.mood  .bar-fill{background:var(--yellow)}
+.stats.hygiene .mdi{color:var(--green)}
+.stats.hygiene .bar-fill{background:var(--green)}
+
+/* action buttons — single row */
+.actions{
+  width:100%;display:flex;gap:4px;margin:4px 0;
+}
+.act-btn{
+  flex:1;padding:4px 0;border-radius:8px;
+  background:var(--btn-bg);border:1.5px solid var(--btn-bd);
+  color:var(--title);font-size:10px;text-align:center;
+  cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;gap:3px;
+}
+.act-btn .mdi{font-size:12px}
+.act-btn:active{transform:scale(.94)}
+.act-btn.mode{background:rgba(34,211,238,.08);border-color:var(--accent);color:var(--accent)}
+
+/* ============================================================
+   PAGE 1: Chat
+   ============================================================ */
+.chat-area{
+  flex:1;width:100%;display:flex;flex-direction:column;gap:4px;
+  overflow-y:auto;padding-right:2px;margin-top:2px;
+}
+.chat-msg{
+  max-width:84%;padding:6px 10px;border-radius:10px;
+  font-size:11px;line-height:1.4;animation:fadeUp .3s;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.chat-msg.user{
+  align-self:flex-end;background:var(--accent);color:#000;
+  border-bottom-right-radius:4px;
+}
+.chat-msg.pet{
+  align-self:flex-start;background:var(--card-bg);color:var(--title);
+  border-bottom-left-radius:4px;
+}
+.chat-input{
+  width:100%;display:flex;gap:6px;margin-bottom:4px;
+}
+.chat-input input{
+  flex:1;background:var(--card-bg);border:1px solid var(--btn-bd);
+  border-radius:10px;padding:7px 10px;color:var(--title);
+  font-size:11px;outline:none;font-family:inherit;
+}
+.chat-input input:focus{border-color:var(--accent)}
+.chat-input .send{
+  background:var(--accent);color:#000;border:none;
+  border-radius:10px;padding:7px 14px;font-size:11px;font-weight:700;
+  cursor:pointer;
+}
+
+/* ============================================================
+   PAGE 2: Dashboard
+   ============================================================ */
+.dash-grid{
+  width:100%;display:grid;grid-template-columns:1fr 1fr;
+  gap:6px;margin-top:4px;
+}
+.dcard{
+  background:var(--card-bg);border-radius:10px;padding:10px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+}
+.dcard .mdi{font-size:22px}
+.dcard .val{font-size:18px;font-weight:700}
+.dcard .lbl{font-size:10px;color:var(--label)}
+.dcard.tmp .mdi,.dcard.tmp .val{color:var(--accent2)}
+.dcard.hmd .mdi,.dcard.hmd .val{color:var(--accent)}
+.dcard.prs .mdi,.dcard.prs .val{color:var(--purple)}
+.dcard.air .mdi,.dcard.air .val{color:var(--red)}
+
+.chart-row{
+  width:100%;margin-top:6px;background:var(--card-bg);
+  border-radius:10px;padding:10px 12px;
+}
+.chart-row .lbl{font-size:10px;color:var(--label);margin-bottom:4px}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:50px}
+.chart-bars .bar{
+  flex:1;background:var(--accent);border-radius:4px 4px 0 0;
+  transition:height .5s;min-height:4px;
+}
+.chart-bars .bar:nth-child(odd){background:var(--purple)}
+
+/* ============================================================
+   PAGE 3: Settings
+   ============================================================ */
+.settings-list{
+  width:100%;display:flex;flex-direction:column;gap:6px;margin-top:4px;
+}
+.set-item{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  background:var(--card-bg);border-radius:10px;
+}
+.set-item .mdi{font-size:20px;color:var(--accent);width:24px;text-align:center}
+.set-item .info{flex:1}
+.set-item .info .lbl{font-size:12px;color:var(--title)}
+.set-item .info .desc{font-size:10px;color:var(--label)}
+.tgl{
+  width:44px;height:24px;border-radius:12px;
+  background:var(--btn-bd);cursor:pointer;position:relative;transition:background .2s;
+}
+.tgl.on{background:var(--accent)}
+.tgl::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:20px;height:20px;background:#fff;border-radius:50%;
+  transition:left .2s;
+}
+.tgl.on::after{left:22px}
+.slider{width:80px;accent-color:var(--accent)}
+
+/* ============================================================
+   PAGE 4: About
+   ============================================================ */
+.about-area{
+  width:100%;flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;
+}
+.about-area .ver{font-size:11px;color:var(--desc)}
+.about-area .list{
+  font-size:10px;color:var(--label);text-align:center;line-height:1.7;
+}
+</style>
+<!-- ══════════════════════════════════════════════════════
+   ANNOTATION LAYER CSS
+   ══════════════════════════════════════════════════════ -->
+<style>
+#toggle-annot{display:none}
+.annot-overlay.show{display:block}
+.annot-bar{
+  position:fixed;top:10px;right:16px;z-index:9999;
+  display:flex;align-items:center;gap:6px;
+  background:#1e293b;color:#9ca3af;font-size:11px;
+  padding:5px 10px;border-radius:8px;cursor:pointer;
+  font-family:'Inter',system-ui,sans-serif;
+}
+.annot-bar input{accent-color:#22d3ee;width:14px;height:14px;margin:0}
+.annot-overlay{display:none;position:absolute;inset:0;pointer-events:none;z-index:99}
+.annot-tag{
+  position:absolute;font-size:9px;font-family:Consolas,monospace;
+  background:rgba(34,211,238,.12);color:#22d3ee;
+  padding:1px 4px;border-radius:2px;white-space:nowrap;
+  border:1px dashed rgba(34,211,238,.35);
+}
+.annot-tag.red{color:#ff6b6b;border-color:rgba(255,107,107,.4);background:rgba(255,107,107,.08)}
+.annot-tag.yellow{color:#facc15;border-color:rgba(250,204,21,.4);background:rgba(250,204,21,.08)}
+.annot-tag.green{color:#22c55e;border-color:rgba(34,197,94,.4);background:rgba(34,197,94,.08)}
+.annot-outline{
+  position:absolute;border:1px dashed rgba(255,107,107,.45);pointer-events:none;
+}
+.annot-outline.cyan{border-color:rgba(34,211,238,.5)}
+.annot-outline.purple{border-color:rgba(167,139,250,.5)}
+.annot-outline.yellow{border-color:rgba(250,204,21,.5)}
+.annot-measure-h{
+  position:absolute;height:0;border-top:1px solid rgba(255,107,107,.5);
+  pointer-events:none;
+}
+.annot-measure-v{
+  position:absolute;width:0;border-left:1px solid rgba(34,211,238,.5);
+  pointer-events:none;
+}
+</style>
+</head>
+<body>
+
+<label class="annot-bar" for="toggle-annot">
+  <input type="checkbox" id="toggle-annot" checked> 📐 标注
+</label>
+
+<!-- Status Bar -->
+<div class="bar">
+  <span class="title" id="pageTitle">Pro Desk Pet</span>
+  <span class="mode-badge" id="modeBadge" style="background:rgba(34,211,238,.15);color:var(--accent)">NORMAL</span>
+  <span class="dots" id="dots">
+    <span class="dot on"></span><span class="dot off"></span><span class="dot off"></span><span class="dot off"></span><span class="dot off"></span>
+  </span>
+  <i class="mdi mdi-signal"></i>
+  <i class="mdi mdi-wifi"></i>
+</div>
+
+<!-- Pages — fade switch -->
+<div class="pages" id="pages">
+  <!-- 0: Home -->
+  <div class="page active" id="page0">
+    <div class="pet-area">
+      <div class="pet-face float pet idle" id="thePet">
+        <div class="bubble" id="bubble"></div>
+        <div class="zzz">💤</div>
+        <div class="sweat">💧</div>
+        <div class="sparkle">✨</div>
+        <div class="pet-body">
+          <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+          <div class="mouth"></div>
+          <div class="blush l"></div><div class="blush r"></div>
+        </div>
+      </div>
+    </div>
+    <div class="status-row">
+      <div class="stats hunger"><i class="mdi mdi-food"></i>
+        <div class="bar-wrap"><div class="bar-fill" id="hungerBar" style="width:30%"></div></div>
+        <span class="pct" id="hungerPct">30%</span>
+      </div>
+      <div class="stats energy"><i class="mdi mdi-lightning-bolt"></i>
+        <div class="bar-wrap"><div class="bar-fill" id="energyBar" style="width:72%"></div></div>
+        <span class="pct" id="energyPct">72%</span>
+      </div>
+      <div class="stats mood"><i class="mdi mdi-emoticon"></i>
+        <div class="bar-wrap"><div class="bar-fill" id="moodBar" style="width:85%"></div></div>
+        <span class="pct" id="moodPct">85%</span>
+      </div>
+      <div class="stats hygiene"><i class="mdi mdi-shower"></i>
+        <div class="bar-wrap"><div class="bar-fill" id="hygieneBar" style="width:60%"></div></div>
+        <span class="pct" id="hygienePct">60%</span>
+      </div>
+    </div>
+    <div class="actions">
+      <div class="act-btn feed" onclick="doAction('feed')"><i class="mdi mdi-food-apple"></i>Feed</div>
+      <div class="act-btn pet"  onclick="doAction('pet')"><i class="mdi mdi-hand-heart"></i>Pet</div>
+      <div class="act-btn sleep" onclick="doAction('sleep')"><i class="mdi mdi-sleep"></i>Sleep</div>
+      <div class="act-btn clean" onclick="doAction('clean')"><i class="mdi mdi-spray-bottle"></i>Clean</div>
+      <div class="act-btn train" onclick="doAction('train')"><i class="mdi mdi-dumbbell"></i>Train</div>
+      <div class="act-btn mode" onclick="cycleMode()"><i class="mdi mdi-swap-horizontal"></i>Mode</div>
+    </div>
+  </div>
+
+  <!-- 1: Chat -->
+  <div class="page" id="page1">
+    <div class="chat-area" id="chatArea">
+      <div class="chat-msg pet">Hi! I'm your desk pet. Ask me anything or just chat!</div>
+    </div>
+    <div class="chat-input">
+      <input id="chatInput" placeholder="Say something..." onkeydown="if(event.key==='Enter')sendMsg()">
+      <button class="send" onclick="sendMsg()">Send</button>
+    </div>
+  </div>
+
+  <!-- 2: Dashboard -->
+  <div class="page" id="page2">
+    <div class="dash-grid">
+      <div class="dcard tmp"><i class="mdi mdi-thermometer"></i><div class="val">26.5°C</div><div class="lbl">Temperature</div></div>
+      <div class="dcard hmd"><i class="mdi mdi-water-percent"></i><div class="val">65.2%</div><div class="lbl">Humidity</div></div>
+      <div class="dcard prs"><i class="mdi mdi-gauge"></i><div class="val">1013</div><div class="lbl">Pressure hPa</div></div>
+      <div class="dcard air"><i class="mdi mdi-air-filter"></i><div class="val">12</div><div class="lbl">PM2.5</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="lbl">Activity — last 24h</div>
+      <div class="chart-bars" id="chartBars"></div>
+    </div>
+  </div>
+
+  <!-- 3: Settings -->
+  <div class="page" id="page3">
+    <div class="settings-list">
+      <div class="set-item">
+        <i class="mdi mdi-account-voice"></i>
+        <div class="info"><div class="lbl">Voice Interaction</div><div class="desc">Enable speech input/output</div></div>
+        <div class="tgl on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="set-item">
+        <i class="mdi mdi-robot"></i>
+        <div class="info"><div class="lbl">AI Backend</div><div class="desc">DeepSeek / OpenAI / Local</div></div>
+        <span style="font-size:11px;color:var(--accent)">DeepSeek</span>
+      </div>
+      <div class="set-item">
+        <i class="mdi mdi-palette"></i>
+        <div class="info"><div class="lbl">Theme Accent</div><div class="desc">Color scheme</div></div>
+        <span style="display:flex;gap:4px">
+          <span style="width:16px;height:16px;border-radius:50%;background:#22d3ee;cursor:pointer;border:2px solid #fff"></span>
+          <span style="width:16px;height:16px;border-radius:50%;background:#fb923c;cursor:pointer"></span>
+          <span style="width:16px;height:16px;border-radius:50%;background:#a78bfa;cursor:pointer"></span>
+          <span style="width:16px;height:16px;border-radius:50%;background:#f472b6;cursor:pointer"></span>
+        </span>
+      </div>
+      <div class="set-item">
+        <i class="mdi mdi-bell"></i>
+        <div class="info"><div class="lbl">Idle Notifications</div><div class="desc">Remind when pet needs attention</div></div>
+        <div class="tgl on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="set-item">
+        <i class="mdi mdi-clock-outline"></i>
+        <div class="info"><div class="lbl">Auto-save Interval</div><div class="desc">30 seconds</div></div>
+        <input type="range" class="slider" min="5" max="120" value="30">
+      </div>
+    </div>
+  </div>
+
+  <!-- 4: About -->
+  <div class="page" id="page4">
+    <div class="about-area">
+      <div style="font-size:28px">🤖</div>
+      <div style="font-size:16px;font-weight:700">Pro Desk Pet</div>
+      <div class="ver">v1.0.0 — HZCL + LVGL + SDL2</div>
+      <div class="list">
+        AI-powered desktop companion<br>
+        Cross-platform · Embeddable<br>
+        FSM-driven personality engine<br>
+        9 emotional states · 4 interaction modes<br>
+        Built with ❤️ using HZCL Framework
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+   ANNOTATION OVERLAY — measurement callouts
+   ══════════════════════════════════════════════════════ -->
+<div class="annot-overlay">
+
+  <!-- === SCREEN === -->
+  <div class="annot-outline" style="top:0;left:0;width:480px;height:320px"></div>
+  <div class="annot-tag" style="top:2px;left:4px">480×320  bg:#0b1120  r=16</div>
+
+  <!-- === STATUS BAR === -->
+  <div class="annot-outline cyan" style="top:0;left:0;width:480px;height:36px"></div>
+  <div class="annot-tag" style="top:20px;right:4px">BG=36</div>
+  <div class="annot-tag" style="top:2px;left:160px">bg:#111c30  pad:0 14px  flex row</div>
+
+  <!-- Title -->
+  <div class="annot-tag yellow" style="top:2px;left:14px">font:13px/700 #fff  flex:1</div>
+  <div class="annot-tag yellow" style="top:22px;left:14px">"Pro Desk Pet" → "... — STATE"</div>
+
+  <!-- Mode badge -->
+  <div class="annot-outline yellow" style="top:6px;left:156px;width:60px;height:24px"></div>
+  <div class="annot-tag yellow" style="top:0;left:148px;font-size:8px">font:10px pad:2/8 r=6</div>
+  <div class="annot-tag" style="top:16px;left:160px;font-size:8px">bg:rgba(34,211,238,.15)</div>
+
+  <!-- Dots -->
+  <div class="annot-outline yellow" style="top:13px;left:288px;width:48px;height:10px"></div>
+  <div class="annot-tag yellow" style="top:2px;left:280px;font-size:8px">gap:5px mr:8px</div>
+  <div class="annot-tag yellow" style="top:15px;left:288px;font-size:8px">on:9×9 #22d3ee</div>
+  <div class="annot-tag yellow" style="top:26px;left:288px;font-size:8px">off:7×7 #64748b</div>
+
+  <!-- Signal + WiFi -->
+  <div class="annot-tag green" style="top:2px;left:350px;font-size:8px">mdi 16px #22c55e ml:6px</div>
+
+  <!-- === PAGES CONTAINER === -->
+  <div class="annot-outline purple" style="top:36px;left:0;width:480px;height:284px"></div>
+  <div class="annot-tag" style="top:37px;right:6px;background:rgba(167,139,250,.15);border-color:rgba(167,139,250,.4);color:#a78bfa">PH=284</div>
+  <div class="annot-tag" style="top:37px;left:200px;font-size:8px">overflow:hidden  position:relative</div>
+
+  <!-- Page padding -->
+  <div class="annot-tag green" style="top:37px;left:14px;font-size:8px">page pad:2px 14px 0</div>
+
+  <!-- === PET FACE === -->
+  <div class="annot-outline cyan" style="top:138px;left:195px;width:90px;height:90px;border-radius:50%"></div>
+  <div class="annot-tag" style="top:184px;left:170px;font-size:8px">HEAD_SZ=90  centered</div>
+
+  <!-- Pet body -->
+  <div class="annot-tag" style="top:232px;left:180px;font-size:8px">circle  gradient:#1e293b→#0b1525  border:2.5px #334155</div>
+
+  <!-- Eyes -->
+  <div class="annot-outline yellow" style="top:166px;left:218px;width:44px;height:20px"></div>
+  <div class="annot-tag yellow" style="top:150px;left:210px;font-size:8px">eyes:top:28 gap:15px</div>
+  <div class="annot-tag yellow" style="top:162px;left:210px;font-size:8px">eye:16×20 #fff r=50%</div>
+  <div class="annot-tag yellow" style="top:174px;left:210px;font-size:8px">pupil:5×5 #0b1120</div>
+
+  <!-- Mouth -->
+  <div class="annot-outline yellow" style="top:252px;left:226px;width:28px;height:12px"></div>
+  <div class="annot-tag yellow" style="top:244px;left:260px;font-size:8px">mouth:bottom:22</div>
+  <div class="annot-tag yellow" style="top:256px;left:260px;font-size:8px">28×12  bd-btm:2px</div>
+  <div class="annot-tag yellow" style="top:268px;left:260px;font-size:8px">r:0 0 50% 50%</div>
+
+  <!-- Blush -->
+  <div class="annot-tag" style="top:192px;left:195px;font-size:8px">blush:top:42 10×5</div>
+
+  <!-- === STATUS CARDS ROW === -->
+  <div class="annot-outline" style="top:294px;left:14px;width:452px;height:24px"></div>
+  <div class="annot-tag red" style="top:288px;left:14px;font-size:8px">.status-row  flex gap:4px  mt:4px</div>
+
+  <!-- Single card -->
+  <div class="annot-outline yellow" style="top:294px;left:14px;width:110px;height:24px"></div>
+  <div class="annot-tag yellow" style="top:320px;left:6px;font-size:8px">flex:1 ≈110×24</div>
+  <div class="annot-tag yellow" style="top:320px;left:100px;font-size:8px">bg:#1c273b r=6 pad:3/6</div>
+
+  <!-- Card internals -->
+  <div class="annot-tag green" style="top:288px;left:128px;font-size:7px">mdi:11px w:14px</div>
+  <div class="annot-tag green" style="top:288px;left:170px;font-size:7px">bar:h=3px r=2</div>
+  <div class="annot-tag green" style="top:288px;left:230px;font-size:7px">pct:9px #9ca3af</div>
+
+  <!-- === ACTION BUTTONS ROW === -->
+  <div class="annot-outline" style="top:322px;left:14px;width:452px;height:26px"></div>
+  <div class="annot-tag red" style="top:316px;left:14px;font-size:8px">.actions  flex gap:4px  m:4px 0</div>
+
+  <!-- Single button -->
+  <div class="annot-outline yellow" style="top:322px;left:14px;width:72px;height:26px"></div>
+  <div class="annot-tag yellow" style="top:350px;left:2px;font-size:8px">flex:1 ≈72×26</div>
+  <div class="annot-tag yellow" style="top:350px;left:76px;font-size:8px">pad:4/0 r=8</div>
+  <div class="annot-tag yellow" style="top:360px;left:2px;font-size:8px">bg:#1e293b bd:1.5px #334155</div>
+
+  <!-- Button layout -->
+  <div class="annot-tag green" style="top:316px;left:90px;font-size:7px">icon+txt horiz gap:3px</div>
+  <div class="annot-tag green" style="top:316px;left:200px;font-size:7px">font:10px mdi:12px</div>
+
+  <!-- Mode button -->
+  <div class="annot-outline cyan" style="top:322px;left:394px;width:72px;height:26px"></div>
+  <div class="annot-tag" style="top:350px;left:380px;font-size:8px">mode:bg rgba(34,211,238,.08)</div>
+  <div class="annot-tag" style="top:362px;left:380px;font-size:8px">border #22d3ee  color #22d3ee</div>
+
+</div><!-- /annot-overlay -->
+
+</div><!-- .device -->
+
+<script>
+// === Annotation Toggle ===
+(function(){
+  var cb=document.getElementById('toggle-annot');
+  var ov=document.querySelector('.annot-overlay');
+  if(cb&&ov){
+    ov.classList.add('show');
+    cb.checked=true;
+    cb.addEventListener('change',function(){
+      ov.classList.toggle('show',cb.checked);
+    });
+  }
+})();
+
+// ============================================================
+// Pet State Machine
+// ============================================================
+var petState='idle';
+var modeIdx=0;
+var modes=['NORMAL','FOCUS','PLAY','NIGHT'];
+var modeCols=['var(--accent)','var(--purple)','var(--accent2)','#818cf8'];
+var modeBgs=['rgba(34,211,238,.15)','rgba(167,139,250,.15)','rgba(251,146,60,.15)','rgba(129,140,248,.15)'];
+var hunger=30,energy=72,mood=85,hygiene=60;
+
+var statePhrases={
+  idle:['Chillin…','Just watching','What\'s up?','*blink*'],
+  happy:['Feeling great!','So happy!','Love this!','Hehe~'],
+  hyper:['AWESOME!!','Let\'s GO!!','WOOHOO!','SO PUMPED!'],
+  eating:['Yummy!','More please!','Delicious!','*nom nom*'],
+  sad:['So sad…','Need a hug…','Feeling down…','Why…'],
+  sick:['Not well…','Ugh…','Help me…','*cough*'],
+  sleeping:['Zzz…','Sweet dreams','Night night~','*snore*'],
+  training:['Working hard!','Let\'s go!','💪💪💪','Push it!'],
+  cleaning:['Sparkling!','So fresh!','Shiny!','All clean!'],
+};
+
+// ============================================================
+// Navigation — swipe + dots
+// ============================================================
+var titles=['Pro Desk Pet','AI Chat','Dashboard','Settings','About'];
+var curPage=0;
+
+function goPage(n){
+  if(n===curPage)return;
+  var pages=document.querySelectorAll('.page');
+  // exit old page
+  var old=pages[curPage];
+  old.classList.add('exit');old.classList.remove('active');
+  setTimeout(function(){old.classList.remove('exit')},300);
+  // enter new page
+  curPage=n;
+  pages[n].classList.add('active');
+  document.querySelectorAll('#dots .dot').forEach(function(d,i){
+    d.className='dot '+(i===n?'on':'off');
+  });
+  document.getElementById('pageTitle').textContent=titles[n];
+  updateTitle();
+}
+
+// swipe detection
+var touchStartX=0,touchStartY=0;
+var pagesEl=document.getElementById('pages');
+pagesEl.addEventListener('touchstart',function(e){touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY});
+pagesEl.addEventListener('touchend',function(e){
+  var dx=e.changedTouches[0].clientX-touchStartX;
+  var dy=e.changedTouches[0].clientY-touchStartY;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){
+    if(dx<0&&curPage<4) goPage(curPage+1);
+    if(dx>0&&curPage>0) goPage(curPage-1);
+  }
+});
+// mouse drag fallback
+var mouseDown=false,mouseX=0;
+pagesEl.addEventListener('mousedown',function(e){mouseDown=true;mouseX=e.clientX});
+window.addEventListener('mouseup',function(e){
+  if(!mouseDown)return;mouseDown=false;
+  var dx=e.clientX-mouseX;
+  if(Math.abs(dx)>50){
+    if(dx<0&&curPage<4) goPage(curPage+1);
+    if(dx>0&&curPage>0) goPage(curPage-1);
+  }
+});
+
+// ============================================================
+// Set pet state with full animation
+// ============================================================
+function setPetState(state,duration){
+  var p=document.getElementById('thePet');
+  var b=document.getElementById('bubble');
+
+  // clear all animation classes
+  p.classList.remove('float','bounce','shake','tremble','spin','pulse','talking','blink');
+
+  // clear all mood classes
+  'idle happy hyper eating sad sick sleeping angry training cleaning'.split(' ')
+    .forEach(function(m){p.classList.remove(m)});
+
+  // apply new mood
+  p.classList.add(state);
+  petState=state;
+
+  // apply animation style per state
+  var animMap={
+    idle:'float', happy:'float', hyper:'bounce', eating:'pulse',
+    sad:'float', sick:'tremble', sleeping:'float',
+    training:'bounce', cleaning:'float'
+  };
+  if(animMap[state]) p.classList.add(animMap[state]);
+
+  // bubble text
+  var msgs=statePhrases[state]||['...'];
+  b.textContent=msgs[Math.floor(Math.random()*msgs.length)];
+  b.classList.add('show');
+  clearTimeout(b._hide);
+  b._hide=setTimeout(function(){b.classList.remove('show')},2500);
+
+  // auto-return to idle after duration
+  clearTimeout(p._autoIdle);
+  if(duration){
+    p._autoIdle=setTimeout(function(){setPetState('idle')},duration);
+  }
+  updateTitle();
+}
+
+// ============================================================
+// Actions
+// ============================================================
+function doAction(act){
+  var map={
+    feed:  {state:'eating',  dur:3000, h:35, e:8,  m:12, y:0},
+    pet:   {state:'happy',   dur:4000, h:0,  e:-3, m:22, y:0},
+    sleep: {state:'sleeping',dur:6000, h:-5, e:25, m:5,  y:0},
+    clean: {state:'cleaning',dur:2500, h:0,  e:0,  m:8,  y:35},
+    train: {state:'training',dur:4000, h:-15,e:-12,m:12, y:-5},
+  };
+  var a=map[act];
+  if(!a)return;
+
+  setPetState(a.state,a.dur);
+  hunger=Math.min(100,Math.max(0,hunger+a.h));
+  energy=Math.min(100,Math.max(0,energy+a.e));
+  mood=Math.min(100,Math.max(0,mood+a.m));
+  hygiene=Math.min(100,Math.max(0,hygiene+a.y));
+  updateBars();
+}
+
+function cycleMode(){
+  modeIdx=(modeIdx+1)%4;
+  var b=document.getElementById('modeBadge');
+  b.textContent=modes[modeIdx];
+  b.style.background=modeBgs[modeIdx];
+  b.style.color=modeCols[modeIdx];
+}
+
+// ============================================================
+// Status bars
+// ============================================================
+function updateBars(){
+  document.getElementById('hungerBar').style.width=hunger+'%';
+  document.getElementById('hungerPct').textContent=Math.round(hunger)+'%';
+  document.getElementById('energyBar').style.width=energy+'%';
+  document.getElementById('energyPct').textContent=Math.round(energy)+'%';
+  document.getElementById('moodBar').style.width=mood+'%';
+  document.getElementById('moodPct').textContent=Math.round(mood)+'%';
+  document.getElementById('hygieneBar').style.width=hygiene+'%';
+  document.getElementById('hygienePct').textContent=Math.round(hygiene)+'%';
+}
+
+function updateTitle(){
+  if(document.getElementById('pageTitle').textContent.indexOf('Pro Desk Pet')===0){
+    document.getElementById('pageTitle').textContent='Pro Desk Pet — '+petState.toUpperCase();
+  }
+}
+
+// ============================================================
+// Auto-tick — simulate stat decay
+// ============================================================
+function tick(){
+  if(petState==='sleeping'){
+    energy=Math.min(100,energy+3);
+    hunger=Math.min(100,hunger+0.8);
+  }else if(petState==='eating'){
+    hunger=Math.max(0,hunger-5);
+    energy=Math.min(100,energy+2);
+  }else if(petState==='cleaning'){
+    hygiene=Math.min(100,hygiene+8);
+  }else if(petState==='training'){
+    energy=Math.max(0,energy-3);
+    hunger=Math.min(100,hunger+2);
+    mood=Math.min(100,mood+1);
+  }else{
+    hunger=Math.min(100,hunger+0.5);
+    energy=Math.max(0,energy-0.3);
+    mood=Math.max(0,mood-0.2);
+    hygiene=Math.max(0,hygiene-0.3);
+  }
+
+  // auto state transitions
+  if(hunger>80&&mood<20&&petState==='idle') setPetState('sad',5000);
+  if(energy<10&&(petState==='idle'||petState==='happy')) setPetState('sleeping',8000);
+  if(mood>85&&energy>70&&petState==='idle') setPetState('hyper',3000);
+  if(hunger>90&&petState==='sad') setPetState('angry',3000);
+
+  updateBars();
+}
+setInterval(tick,2000);
+
+// ============================================================
+// Blink animation
+// ============================================================
+setInterval(function(){
+  var p=document.getElementById('thePet');
+  if(p.classList.contains('sleeping')) return;
+  p.classList.add('blink');
+  setTimeout(function(){p.classList.remove('blink')},150);
+},3500);
+
+// ============================================================
+// Chat
+// ============================================================
+var chatReplies=[
+  "I'm doing great! How about you?",
+  "The weather looks nice today ☀️",
+  "I can connect to AI backends like DeepSeek on PC!",
+  "Try asking me about the weather or your schedule.",
+  "You're my favorite human 💙",
+  "I monitor stats, chat, and keep you company!",
+  "FSM-driven personality — 9 states running!",
+  "My code is portable — PC today, embedded tomorrow.",
+];
+function sendMsg(){
+  var inp=document.getElementById('chatInput');
+  var msg=inp.value.trim();
+  if(!msg)return;
+  addMsg('user',msg);
+  inp.value='';
+  setTimeout(function(){
+    addMsg('pet',chatReplies[Math.floor(Math.random()*chatReplies.length)]);
+  },500+Math.random()*800);
+}
+function addMsg(who,txt){
+  var d=document.createElement('div');
+  d.className='chat-msg '+who;d.textContent=txt;
+  var area=document.getElementById('chatArea');
+  area.appendChild(d);area.scrollTop=area.scrollHeight;
+}
+
+// ============================================================
+// Chart
+// ============================================================
+(function(){
+  var h='';
+  for(var i=0;i<14;i++){
+    h+='<div class="bar" style="height:'+(20+Math.floor(Math.random()*60))+'px"></div>';
+  }
+  document.getElementById('chartBars').innerHTML=h;
+})();
+
+// ============================================================
+// Init
+// ============================================================
+updateBars();
+updateTitle();
+</script>
+</body>
+</html>
